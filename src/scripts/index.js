@@ -14,7 +14,7 @@ const STEPS = {
   TEXT_TO_BACK: 'TEXT_TO_BACK',
   POLAR_MOVE_END: 'POLAR_MOVE_END',
   ANIMATE_CLICK_BTN: 'ANIMATE_CLICK_BTN',
-  CLICKED_PLAY: 'CLICKED_PLAY' 
+  START_GAME: 'START_GAME' 
 }
 
 class Main {
@@ -28,6 +28,9 @@ class Main {
   // positions
   cameraPosition = { x: 40000, y: 40000, z: 40000 }
 
+  // sprite3 position
+  sprite3Position = { x: 25000, y: 3000, z: 25000 }
+
   stepsToCall = {}
   // request animation frames here
   requestsFrames = {}
@@ -37,7 +40,8 @@ class Main {
     this.init();
     this.initSky();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
-    this.sequence()
+    this.textSequence()
+    // this.DEVINIT()
     this.looper()
   }
   
@@ -83,16 +87,13 @@ class Main {
       this.sprite2.position.set(25000, 23500, 25000)
     }
 
-    this.sprite3.position.set(25000, 3000, 25000)
+    this.sprite3.position.set(this.sprite3Position.x, this.sprite3Position.y, this.sprite3Position.z)
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
-    // controls.minDistance = 1000;
-    // controls.maxDistance = 20000;
 
     this.controls.maxPolarAngle = Math.PI / 2.05;
     this.controls.addEventListener('change', this.render.bind(this));
@@ -201,7 +202,7 @@ class Main {
     requestAnimationFrame(() => this.looper())
   }
 
-  sequence() {
+  textSequence() {
     this.stepsToCall[STEPS.SHOW_HI] = this.stepShowHi.bind(this, () => {
       delete this.stepsToCall[STEPS.SHOW_HI];
       this.stepsToCall[STEPS.TEXT_TO_BACK] = this.stepTextBack.bind(this)
@@ -216,31 +217,10 @@ class Main {
         this.stepsToCall[STEPS.ANIMATE_CLICK_BTN] = this.stepAnimateClickBtn.bind(this, () => {
           delete this.stepsToCall[STEPS.ANIMATE_CLICK_BTN]
           this.setClickToPlayEvents()
-          this.controls.enabled = true;
         })
       })
       
     });
-
-    // this.step.on(STEPS.SHOW_HI, () => {
-    //   this.stepShowHi(() => {
-    //     // start move the polar angle
-    //     this.step.go(STEPS.POLAR_MOVE_START)
-    //     this.step.go(STEPS.TEXT_TO_BACK)
-    //   })
-    // })
-    // this.step.on(STEPS.POLAR_MOVE_START, () => {
-    //   this.stepPolarStart(() => this.step.go(STEPS.POLAR_MOVE_END))
-    // })
-    // this.step.on(STEPS.TEXT_TO_BACK, () => {
-    //   this.stepTextBack()
-    // })
-    // this.step.on(STEPS.POLAR_MOVE_END, () => {
-    //   this.stepPolarEnd()
-    //   this.stepClickToPlay()
-    
-    // })
-    // this.step.go(STEPS.SHOW_HI)
   }
 
   stepShowHi( finish ) {
@@ -311,13 +291,72 @@ class Main {
     }
     this.sprite3.on('mouseover', hoverPlay);
     this.sprite3.on('mouseout', leavePlay);
+
     this.sprite3.on('click', () => {
       this.sprite3.off('mouseover', hoverPlay)
       this.sprite3.off('mouseout', leavePlay)
-      
       this.sprite3.fillStyle = '#ffffff'
       this.render()
+      this.startGame()
     })
+  }
+
+  DEVINIT() {
+    this.controls.rotateUp(-Math.PI/2)
+    this.setClickToPlayEvents()
+  }
+
+  startGame() {
+    console.log('cam', this.camera.position)
+    console.log('sprite', this.sprite3.position)
+
+    this.stepsToCall['MoveToBoard'] = this.stepMoveToBoard.bind(this, () => {
+      delete this.stepsToCall['MoveToBoard']
+      this.scene.remove(this.sprite3)
+      this.stepsToCall['BoardRotation'] = this.stepRotateBoard.bind(this, () => {
+        delete this.stepsToCall['BoardRotation']
+        // this.controls.minDistance = 1000;
+        // this.controls.maxDistance = 20000;
+        this.controls.enabled = true;
+        
+      })
+    })
+  }
+
+  stepMoveToBoard(finish) {
+    if (this.camera.position.x <= 24000) {
+      return finish()
+    }
+    this.controls.rotateLeft(0.000001)
+    this.camera.position.x -= 200;
+    this.camera.position.z -= 200;
+  }
+  
+  rotateBoard = 0;
+  stepRotateBoard( finish ) {
+// PI/4
+    const angle = this.controls.getAzimuthalAngle()
+    if(angle > 0) {
+      this.controls.rotateLeft(0.006)
+      this.controls.rotateUp(0.0035)
+      this.rotateBoard < 60 && (this.rotateBoard += 2);
+      this.camera.position.y -= this.rotateBoard;
+      this.camera.position.z -= (this.rotateBoard * 2);
+    } else if(this.camera.position.z > 16000) {
+        this.rotateBoard < 120 && (this.rotateBoard += 2);
+        // this.camera.position.y -= this.rotateBoard;
+        this.camera.position.z -= this.rotateBoard;
+    } else {
+      finish()
+    }
+    // if(this.camera.position.x >= 1000) {
+    // this.camera.position.x -= 130;
+    // this.camera.position.z -= 130;
+    // } else if (this.camera.position.x >= 2000) {
+    //   this.rotateBoard > 6 && (this.rotateBoard -= 2);
+    //   this.camera.position.x -= this.rotateBoard;
+    //   this.camera.position.z -= this.rotateBoard;
+    // }
   }
 }
 
