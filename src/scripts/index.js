@@ -28,6 +28,7 @@ class Main {
   // positions
   cameraPosition = { x: 40000, y: 40000, z: 40000 }
 
+  stepsToCall = {}
   // request animation frames here
   requestsFrames = {}
 
@@ -36,8 +37,8 @@ class Main {
     this.init();
     this.initSky();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
-    this.setClickToPlayEvents()
     this.sequence()
+    this.looper()
   }
   
   render() {
@@ -53,14 +54,20 @@ class Main {
     helper.visible = true;
     this.scene.add(helper);
     if(window.innerWidth > 520) {
-      this.sprite1 = new SpriteText2D("ANDRII SHTADLER", { align: textAlign.center, font: 'bold 1500px ArialBold', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
-      this.sprite2 = new SpriteText2D("Interactive portfolio", { align: textAlign.center, font: 'bold 1300px ArialBold', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
-      this.sprite3 = new SpriteText2D("CLICK TO PLAY", { align: textAlign.center, font: 'bold 1500px ArialBold', fillStyle: '#ffffff', antialias: false, shadowBlur: 50, shadowColor: '#ffffff' })
+      this.sprite1 = new SpriteText2D("ANDRII SHTADLER", { align: textAlign.center, font: 'bold 150px Arial', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
+      this.sprite2 = new SpriteText2D("Interactive portfolio", { align: textAlign.center, font: 'bold 130px Arial', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
+      this.sprite3 = new SpriteText2D("CLICK TO PLAY", { align: textAlign.center, font: 'bold 150px Arial', fillStyle: '#ffffff', antialias: false, shadowBlur: 5, shadowColor: '#ffffff' })
     } else {
-      this.sprite1 = new SpriteText2D("ANDRII SHTADLER", { align: textAlign.center, font: 'bold 1200px ArialBold', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
-      this.sprite2 = new SpriteText2D("Interactive portfolio", { align: textAlign.center, font: 'bold 1000px ArialBold', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
-      this.sprite3 = new SpriteText2D("CLICK TO PLAY", { align: textAlign.center, font: 'bold 1500px ArialBold', fillStyle: '#ffffff', antialias: false, shadowBlur: 50, shadowColor: '#ffffff' })
+      this.sprite1 = new SpriteText2D("ANDRII SHTADLER", { align: textAlign.center, font: 'bold 120px Arial', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
+      this.sprite2 = new SpriteText2D("Interactive portfolio", { align: textAlign.center, font: 'bold 100px Arial', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
+      this.sprite3 = new SpriteText2D("CLICK TO PLAY", { align: textAlign.center, font: 'bold 150px Arial', fillStyle: '#ffffff', antialias: false, shadowBlur: 5, shadowColor: '#ffffff' })
     }
+
+
+    this.sprite1.scale.set(10, 10, 10)
+    this.sprite2.scale.set(10, 10, 10)
+    this.sprite3.scale.set(10, 10, 10)
+    
     this.sprite1.material.opacity = 0;
     this.sprite2.material.opacity = 0;
 
@@ -93,6 +100,7 @@ class Main {
     this.controls.enableZoom = true;
     this.controls.enablePan = false;
     this.controls.zoomSpeed = 0.3;
+    this.controls.enabled = false;
     const interaction = new Interaction(this.renderer, this.scene, this.camera);
     
   }
@@ -187,58 +195,75 @@ class Main {
     requestAnimationFrame(()=> { this.textMovie()})
   }
 
-  sequence() {
-    this.step.on(STEPS.SHOW_HI, () => {
-      this.stepShowHi(() => {
-        // start move the polar angle
-        this.step.go(STEPS.POLAR_MOVE_START)
-        this.step.go(STEPS.TEXT_TO_BACK)
-      })
-    })
-    this.step.on(STEPS.POLAR_MOVE_START, () => {
-      this.stepPolarStart(() => this.step.go(STEPS.POLAR_MOVE_END))
-    })
-    this.step.on(STEPS.TEXT_TO_BACK, () => {
-      this.stepTextBack()
-    })
-    this.step.on(STEPS.POLAR_MOVE_END, () => {
-      this.stepPolarEnd()
-      this.stepClickToPlay()
-    
-    })
-    this.step.go(STEPS.SHOW_HI)
+  looper() {
+    Object.keys(this.stepsToCall).forEach(name => this.stepsToCall[name]())
+    this.render()
+    requestAnimationFrame(() => this.looper())
   }
 
-  stepShowHi(finish) {
-    if(this.sprite1.material.opacity >= 1) {
-      cancelAnimationFrame(this.requestsFrames[STEPS.SHOW_HI])
+  sequence() {
+    this.stepsToCall[STEPS.SHOW_HI] = this.stepShowHi.bind(this, () => {
+      delete this.stepsToCall[STEPS.SHOW_HI];
+      this.stepsToCall[STEPS.TEXT_TO_BACK] = this.stepTextBack.bind(this)
 
-      return finish()
+      this.stepsToCall[STEPS.POLAR_MOVE_START] = this.stepPolarStart.bind(this, () => {
+        delete this.stepsToCall[STEPS.TEXT_TO_BACK]
+        delete this.stepsToCall[STEPS.POLAR_MOVE_START]
+        
+        this.stepsToCall[STEPS.POLAR_MOVE_END] = this.stepPolarEnd.bind(this, () => {
+          delete this.stepsToCall[STEPS.POLAR_MOVE_END]
+        })
+        this.stepsToCall[STEPS.ANIMATE_CLICK_BTN] = this.stepAnimateClickBtn.bind(this, () => {
+          delete this.stepsToCall[STEPS.ANIMATE_CLICK_BTN]
+          this.setClickToPlayEvents()
+          this.controls.enabled = true;
+        })
+      })
+      
+    });
+
+    // this.step.on(STEPS.SHOW_HI, () => {
+    //   this.stepShowHi(() => {
+    //     // start move the polar angle
+    //     this.step.go(STEPS.POLAR_MOVE_START)
+    //     this.step.go(STEPS.TEXT_TO_BACK)
+    //   })
+    // })
+    // this.step.on(STEPS.POLAR_MOVE_START, () => {
+    //   this.stepPolarStart(() => this.step.go(STEPS.POLAR_MOVE_END))
+    // })
+    // this.step.on(STEPS.TEXT_TO_BACK, () => {
+    //   this.stepTextBack()
+    // })
+    // this.step.on(STEPS.POLAR_MOVE_END, () => {
+    //   this.stepPolarEnd()
+    //   this.stepClickToPlay()
+    
+    // })
+    // this.step.go(STEPS.SHOW_HI)
+  }
+
+  stepShowHi( finish ) {
+    if(this.sprite1.material.opacity >= 1) {
+      return finish();
     };
 
     this.sprite1.material.opacity += 0.007;
     this.sprite2.material.opacity += 0.007;
-
-    this.render()
-    this.requestsFrames[STEPS.SHOW_HI] = requestAnimationFrame(()=> { this.stepShowHi(finish)})
   }
 
-  stepPolarStart(finish) {
+  stepPolarStart( finish ) {
     let currentPolar = this.controls.getPolarAngle()
     if(currentPolar >= Math.PI / 2.05) {
-      cancelAnimationFrame(this.requestsFrames[STEPS.POLAR_MOVE_START])
       return finish()
     }
 
     this.controls.rotateUp(-0.001)
-    this.render()
-    this.requestsFrames[STEPS.POLAR_MOVE_START] = requestAnimationFrame(()=> { this.stepPolarStart(finish)})
   }
 
   stepTextBack() {
     if(this.sprite1.material.opacity <= 0) {
-      cancelAnimationFrame(this.requestsFrames[STEPS.TEXT_TO_BACK])
-      return
+      return;
     }
 
     if(this.sprite1.position.y > 19000) {
@@ -254,35 +279,25 @@ class Main {
       this.sprite1.material.opacity -= 0.001
       this.sprite2.material.opacity -= 0.001
     };
-
-    this.render()
-    this.requestsFrames[STEPS.TEXT_TO_BACK] = requestAnimationFrame(() => { this.stepTextBack()})
   }
 
-  stepPolarEnd() {
+  stepPolarEnd( finish ) {
     if(this.sprite1.material.opacity <= 0) {
-      cancelAnimationFrame(this.requestsFrames[STEPS.POLAR_MOVE_END])
       return
     }
     this.sprite1.material.opacity > 0 && (this.sprite1.material.opacity -= 0.01);
     this.sprite2.material.opacity > 0 && (this.sprite2.material.opacity -= 0.01);
-
-    this.requestsFrames[STEPS.POLAR_MOVE_END] = requestAnimationFrame(() => { this.stepPolarEnd()})
   }
   
   playColor = new THREE.Color('#ffffff')
-  stepClickToPlay() {
-    console.log(this.playColor) 
-
+  stepAnimateClickBtn( finish ) {
     if(this.playColor.b < 0.5) {
-      cancelAnimationFrame(this.requestsFrames[STEPS.ANIMATE_CLICK_BTN])
-      return;
+      return finish();
     }
+    
     this.playColor.g -= 0.03
     this.playColor.b -= 0.03
     this.sprite3.fillStyle = '#'+this.playColor.getHexString()
-    this.render()
-    this.requestsFrames[STEPS.ANIMATE_CLICK_BTN] = requestAnimationFrame(() => { this.stepClickToPlay()})
   }
 
   setClickToPlayEvents() {
