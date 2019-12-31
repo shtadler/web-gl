@@ -54,9 +54,31 @@ class Main {
 
     this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
     this.scene = new THREE.Scene();
-    const helper = new THREE.GridHelper(10000, 20, 0xffffff, 0xffffff);
-    helper.visible = true;
-    this.scene.add(helper);
+    // const helper = new THREE.GridHelper(10000, 20, 0xffffff, 0xffffff);
+
+    
+    // helper.visible = true;
+    // this.scene.add(helper);
+    var ambient = new THREE.AmbientLight( 0xffffff, 0.5 );
+    this.scene.add( ambient );
+
+    this.spotLight = new THREE.SpotLight( 0xffffff );
+    this.spotLight.position.set( -12000, 4000, -1000 );
+    this.spotLight.angle = Math.PI / 4;
+    this.spotLight.penumbra = 0.05;
+    this.spotLight.decay = 2;
+    this.spotLight.distance = 40000;
+    this.scene.add( this.spotLight );
+
+    var material = new THREE.MeshPhongMaterial( { color: 0x00ff00, dithering: true } );
+    var geometry = new THREE.BoxBufferGeometry( 10000, 1000, 10000 );
+    var mesh = new THREE.Mesh( geometry, material );
+    mesh.position.set( 0 , 0, 0 );
+    mesh.castShadow = true;
+    this.scene.add( mesh );
+        
+
+
     if(window.innerWidth > 520) {
       this.sprite1 = new SpriteText2D("ANDRII SHTADLER", { align: textAlign.center, font: 'bold 150px Arial', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
       this.sprite2 = new SpriteText2D("Interactive portfolio", { align: textAlign.center, font: 'bold 130px Arial', fillStyle: '#ffffff', antialias: false, shadowColor: '#ffffff' })
@@ -133,11 +155,6 @@ class Main {
 
     var distance = 400000;
 
-
-    // function guiChanged() {
-      
-    // }
-
     var uniforms = this.sky.material.uniforms;
     uniforms["turbidity"].value = effectController.turbidity;
     uniforms["rayleigh"].value = effectController.rayleigh;
@@ -156,10 +173,6 @@ class Main {
     this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
 
     this.render()
-
-    // var gui = new GUI();
-    // gui.add(effectController, "luminance", 0.0, 2).onChange(guiChanged);
-    // guiChanged();
   }
 
   onWindowResize() {
@@ -302,8 +315,18 @@ class Main {
   }
 
   DEVINIT() {
-    this.controls.rotateUp(-Math.PI/2)
+    this.controls.rotateLeft(0.8)
+    this.controls.rotateUp(-0.2)
+    this.camera.position.set(1000, 5000, 20000)
+    this.controls.enabled = true;
     this.setClickToPlayEvents()
+
+    //
+     var gui = new GUI();
+    gui.add(this.spotLight.position, "x", -30000, 20000);
+    gui.add(this.spotLight.position, "y", -30000, 20000);
+    gui.add(this.spotLight.position, "z", -5000, 0);
+    gui.add(this.spotLight, "distance", 0, 30000);
   }
 
   startGame() {
