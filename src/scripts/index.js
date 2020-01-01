@@ -8,6 +8,10 @@ import { Sky } from './objects/sky';
 import { OrbitControls } from './contrlos/Orbit';
 import StepHelper from './step-helper';
 
+import aaa from '../aaa.jpg'
+import bbb from '../bbb.jpg'
+
+
 const STEPS = {
   SHOW_HI: 'SHOW_HI',
   POLAR_MOVE_START: 'POLAR_MOVE_START',
@@ -70,9 +74,15 @@ class Main {
     this.spotLight.distance = 40000;
     this.scene.add( this.spotLight );
 
-    var material = new THREE.MeshPhongMaterial( { color: 0x00ff00, dithering: true } );
+    var texture = new THREE.TextureLoader().load( bbb );
+    var texture2 = new THREE.TextureLoader().load( aaa );
+    texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping
+    texture2.repeat.set(4, 1)
+   
+    var material = new THREE.MeshPhongMaterial( {  map: texture, side: THREE.DoubleSide} );
+    var material2 = new THREE.MeshPhongMaterial( { map: texture2, side: THREE.DoubleSide } );
     var geometry = new THREE.BoxBufferGeometry( 10000, 1000, 10000 );
-    var mesh = new THREE.Mesh( geometry, material );
+    var mesh = new THREE.Mesh( geometry, [material2, material2, material, material2,material2, material2] );
     mesh.position.set( 0 , 0, 0 );
     mesh.castShadow = true;
     this.scene.add( mesh );
