@@ -8,6 +8,8 @@ import { OrbitControls } from './contrlos/Orbit';
 import StepHelper from './step-helper';
 import obj from '../plate.obj'
 import mtl from '../plate.mtl'
+import stoneOBJ from '../mount-stone.obj'
+import stoneMTL from '../mount-stone.mtl'
 import '../Island.png'
 import '../Material.001 Base Color.png'
 import '../Material.003 Base Color.png'
@@ -81,6 +83,31 @@ this.scene.add( q );
   
       } );
           object.scale.set(10,10,10)
+          this.scene.add( object );
+  
+      } );
+    });
+
+    mtlLoader.load( stoneMTL, ( materials ) => {
+      console.log(materials)
+      materials.preload();
+      console.log(materials)
+      var objLoader = new OBJLoader();
+      objLoader.setMaterials( materials );
+      objLoader.load( stoneOBJ, ( object ) => {
+       
+        object.traverse( function ( child ) {
+          if ( child instanceof THREE.Mesh ) {
+            if(child.material instanceof Array) {
+              child.material.forEach((mat) => mat.shininess = 0)
+            } else {
+              child.material.shininess = 0
+            }
+          }
+  
+      } );
+          object.scale.set(10,10,10)
+         
           this.scene.add( object );
   
       } );
