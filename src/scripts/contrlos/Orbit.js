@@ -323,6 +323,7 @@ var OrbitControls = function ( object, domElement ) {
   }
   this.rotateLeft = function(angle) {
     rotateLeft(angle);
+    console.log('asda')
     scope.update();
   }
   this.rotateUp = function(angle) {
