@@ -56,6 +56,14 @@ class Main {
     this.scene.add( this.sun );
 
 
+    var geometry = new THREE.RingGeometry( 0, 2, 6 );
+var material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } );
+var q = new THREE.Mesh( geometry, material );
+q.rotation.x = Math.PI/2
+q.rotation.z = Math.PI/2
+this.scene.add( q );
+
+
     var mtlLoader = new MTLLoader();
     mtlLoader.load( mtl, ( materials ) => {
       console.log(materials)
@@ -93,13 +101,9 @@ class Main {
     this.controls.enabled = true;
     const interaction = new Interaction(this.renderer, this.scene, this.camera);
     var gui = new GUI();
-    window.q = this.controls.rotateLeft
-    window.w = this.controls.rotateUp
-
-    setInterval(() => {
-      console.log('polar', this.controls.getPolarAngle())
-      console.log('Azimuthal', this.controls.getAzimuthalAngle())
-    }, 400)
+    gui.add(q.position, "x", -10, 10);
+    gui.add(q.position, "y", 0, 3);
+    gui.add(q.position, "z", -10, 10);
   }
 
   onWindowResize() {
