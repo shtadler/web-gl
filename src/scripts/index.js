@@ -10,6 +10,8 @@ import obj from '../plate.obj'
 import mtl from '../plate.mtl'
 import stoneOBJ from '../mount-stone.obj'
 import stoneMTL from '../mount-stone.mtl'
+import riverOBJ from '../river.obj'
+import riverMTL from '../river.mtl'
 import '../Island.png'
 import '../Material.001 Base Color.png'
 import '../Material.003 Base Color.png'
@@ -95,6 +97,29 @@ this.scene.add( q );
       var objLoader = new OBJLoader();
       objLoader.setMaterials( materials );
       objLoader.load( stoneOBJ, ( object ) => {
+       
+        object.traverse( function ( child ) {
+          if ( child instanceof THREE.Mesh ) {
+            if(child.material instanceof Array) {
+              child.material.forEach((mat) => mat.shininess = 0)
+            } else {
+              child.material.shininess = 0
+            }
+          }
+  
+      } );
+          object.scale.set(8,8,8)
+          object.position.set(-10,0,10)
+          this.scene.add( object );
+  
+      } );
+    });
+
+    mtlLoader.load( riverMTL, ( materials ) => {
+      materials.preload();
+      var objLoader = new OBJLoader();
+      objLoader.setMaterials( materials );
+      objLoader.load( riverOBJ, ( object ) => {
        
         object.traverse( function ( child ) {
           if ( child instanceof THREE.Mesh ) {
