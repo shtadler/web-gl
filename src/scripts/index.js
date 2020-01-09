@@ -13,9 +13,6 @@ import stoneMTL from '../mount-stone.mtl'
 import riverOBJ from '../river.obj'
 import riverMTL from '../river.mtl'
 import '../Island.png'
-import '../Material.001 Base Color.png'
-import '../Material.003 Base Color.png'
-import '../steps.png'
 import {OBJLoader} from "./objects/OBJLoader";
 import {MTLLoader} from './objects/MTLLoader'
 
@@ -47,6 +44,7 @@ class Main {
     this.scene.add( new THREE.AmbientLight( 0x404040 ) );
     this.pointLightBottom = new THREE.DirectionalLight( 0xffffff );
     this.pointLight = new THREE.DirectionalLight( 0xffffff );
+    this.scene.fog = new THREE.FogExp2(0xbfe3dd, 0.004);
     this.pointLight.position.set(-50, 70, -50);
     this.pointLightBottom.position.set(15, -50, -80);
     this.scene.add( this.pointLight );
@@ -109,7 +107,7 @@ this.scene.add( q );
   
       } );
           object.scale.set(8,8,8)
-          object.position.set(-10,0,10)
+          object.position.set(-15,0,10)
           this.scene.add( object );
   
       } );
@@ -132,7 +130,7 @@ this.scene.add( q );
   
       } );
           object.scale.set(10,10,10)
-         
+          object.position.x = -15
           this.scene.add( object );
   
       } );
@@ -149,7 +147,7 @@ this.scene.add( q );
 
     this.controls.enableZoom = true;
     this.controls.enablePan = false;
-    this.controls.zoomSpeed = 0.3;
+    this.controls.zoomSpeed = 2;
     this.controls.enabled = true;
     const interaction = new Interaction(this.renderer, this.scene, this.camera);
     var gui = new GUI();
