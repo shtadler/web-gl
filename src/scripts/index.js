@@ -12,6 +12,8 @@ import stoneOBJ from '../mount-stone.obj'
 import stoneMTL from '../mount-stone.mtl'
 import riverOBJ from '../river.obj'
 import riverMTL from '../river.mtl'
+import pazzlesOBJ from '../pazzles.obj'
+import pazzlesMTL from '../pazzles.mtl'
 import '../Island.png'
 import {OBJLoader} from "./objects/OBJLoader";
 import {MTLLoader} from './objects/MTLLoader'
@@ -57,15 +59,6 @@ class Main {
     this.sun.position.copy(this.pointLight.position)
     this.scene.add( this.sun );
 
-
-    var geometry = new THREE.RingGeometry( 0, 2, 6 );
-var material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } );
-var q = new THREE.Mesh( geometry, material );
-q.rotation.x = Math.PI/2
-q.rotation.z = Math.PI/2
-this.scene.add( q );
-
-
     var mtlLoader = new MTLLoader();
     mtlLoader.load( mtl, ( materials ) => {
       console.log(materials)
@@ -74,6 +67,28 @@ this.scene.add( q );
       var objLoader = new OBJLoader();
       objLoader.setMaterials( materials );
       objLoader.load( obj, ( object ) => {
+        object.traverse( function ( child ) {
+
+          if ( child instanceof THREE.Mesh ) {
+              child.material.shininess = 0
+  
+          }
+  
+      } );
+          object.scale.set(10,10,10)
+          this.scene.add( object );
+  
+      } );
+    });
+
+    var mtlLoader = new MTLLoader();
+    mtlLoader.load( pazzlesMTL, ( materials ) => {
+      console.log(materials)
+      materials.preload();
+      console.log(materials)
+      var objLoader = new OBJLoader();
+      objLoader.setMaterials( materials );
+      objLoader.load( pazzlesOBJ, ( object ) => {
         object.traverse( function ( child ) {
 
           if ( child instanceof THREE.Mesh ) {
@@ -151,9 +166,7 @@ this.scene.add( q );
     this.controls.enabled = true;
     const interaction = new Interaction(this.renderer, this.scene, this.camera);
     var gui = new GUI();
-    gui.add(q.position, "x", -10, 10);
-    gui.add(q.position, "y", 0, 3);
-    gui.add(q.position, "z", -10, 10);
+
   }
 
   onWindowResize() {

@@ -6887,7 +6887,7 @@ Lockfile:
 
 Trace: 
   Error: Command failed.
-  Exit code: 1
+  Exit code: 3221225786
   Command: C:\WINDOWS\system32\cmd.exe
   Arguments: /d /s /c webpack-dev-server --open --host=0.0.0.0 --config webpack/webpack.config.dev.js
   Directory: C:\www\webgl
