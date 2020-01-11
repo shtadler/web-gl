@@ -74,6 +74,20 @@ class Main {
     pazzles$.then(pazzlessMesh => {
       pazzlessMesh.scale.set(10, 10, 10);
       this.scene.add(pazzlessMesh);
+      this.pazzlessArray = []
+      pazzlessMesh.traverse((child) => {
+        if(child instanceof THREE.Mesh && !child.name.includes('border')) {
+          this.pazzlessArray.push(child)
+        }
+      })
+      return ;
+    }).then(() => {
+      this.pazzlessArray.forEach(pazzle => {
+        pazzle.on('click', (a) => {
+          console.log(pazzle)
+          pazzle.position.y -= 0.1;
+        })
+      })
     })
     
     const stone$ = loadObj(stoneMTL, stoneOBJ);
