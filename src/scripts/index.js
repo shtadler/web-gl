@@ -24,6 +24,8 @@ class Main {
   controls;
   scene;
   renderer;
+  pazzles = {};
+  ACTIONS = {};
 
   constructor() {
     this.init();
@@ -71,23 +73,20 @@ class Main {
     })
     
     const pazzles$ = loadObj(pazzlesMTL, pazzlesOBJ);
-    pazzles$.then(pazzlessMesh => {
-      pazzlessMesh.scale.set(10, 10, 10);
-      this.scene.add(pazzlessMesh);
-      this.pazzlessArray = []
-      pazzlessMesh.traverse((child) => {
+    pazzles$.then(pazzlesMesh => {
+      pazzlesMesh.scale.set(10, 10, 10);
+      this.scene.add(pazzlesMesh);
+      
+      pazzlesMesh.traverse((child) => {
         if(child instanceof THREE.Mesh && !child.name.includes('border')) {
-          this.pazzlessArray.push(child)
+          const childNumber = child.name.split('_I')[0];
+          this.pazzles[childNumber] = child
         }
       })
       return ;
     }).then(() => {
-      this.pazzlessArray.forEach(pazzle => {
-        pazzle.on('click', (a) => {
-          console.log(pazzle)
-          pazzle.position.y -= 0.1;
-        })
-      })
+      this.paintPazzles()
+      this.initPazzles()
     })
     
     const stone$ = loadObj(stoneMTL, stoneOBJ);
@@ -128,6 +127,36 @@ class Main {
     this.render();
   }
 
+  pazzlesColors = {
+    1:0x4FC3F7, 2:0x4FC3F7, 4:0x4FC3F7, 5:0x4FC3F7, 6:0x4FC3F7, 9:0x4FC3F7, 10:0x4FC3F7, 11:0x4FC3F7, 14:0x4FC3F7,
+    15:0xFFD54F, 16:0xFFD54F, 17:0xFFD54F, 19:0xFFD54F,
+    3:0xFF8A65 ,7:0xFF8A65 ,8:0xFF8A65 ,12:0xFF8A65 ,13:0xFF8A65 ,18:0xFF8A65
+  }
+
+  paintPazzles() {
+    Object.keys(this.pazzlesColors).forEach(number => {
+      const newMaterial = this.pazzles[number].material.clone()
+      newMaterial.color.setHex(this.pazzlesColors[number])
+      this.pazzles[number].material = newMaterial
+    })
+  }
+  pazzleAction(name, pazzle) {
+    pazzle.position.y -= 0.05
+    if(pazzle.position.y <= -1) {
+      pazzle.material.visible = false
+      delete this.ACTIONS[name]
+    }
+  }
+  initPazzles() {
+    Object.values(this.pazzles).forEach(pazzle => {
+      const event = document.ontouchstart !== null ? 'click':'touchstart';
+      pazzle.on(event, () => {
+        console.log(pazzle.position.y)
+        this.ACTIONS[pazzle.name] = this.pazzleAction.bind(this, name, pazzle);
+      })
+    })
+  }
+
   looper() {
     // if(this.controls.getAzimuthalAngle() <= Math.PI/2.05){
     //   this.controls.rotateLeft(-0.006)
@@ -136,6 +165,8 @@ class Main {
     //   this.controls.rotateUp(0.01)
     // }
     // this.controls.rotateLeft(0.01)
+
+    Object.values(this.ACTIONS).forEach(callback => callback())
 
     this.render();
     requestAnimationFrame(() => this.looper());
