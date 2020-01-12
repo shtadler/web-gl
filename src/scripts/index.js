@@ -59,36 +59,36 @@ class Main {
     this.pointLightBottom.position.set(15, -50, -80);
     this.scene.add(this.pointLight);
     this.scene.add(this.pointLightBottom);
-    
+
     var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
     var geometry = new THREE.DodecahedronGeometry(10, 1);
     this.sun = new THREE.Mesh(geometry, material);
     this.sun.position.copy(this.pointLight.position);
     this.scene.add(this.sun);
 
-    const plate$ = loadObj(mtl,obj);
+    const plate$ = loadObj(mtl, obj);
     plate$.then(plateMesh => {
       plateMesh.scale.set(10, 10, 10);
       this.scene.add(plateMesh);
     })
-    
+
     const pazzles$ = loadObj(pazzlesMTL, pazzlesOBJ);
     pazzles$.then(pazzlesMesh => {
       pazzlesMesh.scale.set(10, 10, 10);
       this.scene.add(pazzlesMesh);
-      
+
       pazzlesMesh.traverse((child) => {
-        if(child instanceof THREE.Mesh && !child.name.includes('border')) {
+        if (child instanceof THREE.Mesh && !child.name.includes('border')) {
           const childNumber = child.name.split('_I')[0];
           this.pazzles[childNumber] = child
         }
       })
-      return ;
+      return;
     }).then(() => {
       this.paintPazzles()
       this.initPazzles()
     })
-    
+
     const stone$ = loadObj(stoneMTL, stoneOBJ);
     stone$.then(stoneMesh => {
       stoneMesh.scale.set(8, 8, 8);
@@ -128,9 +128,9 @@ class Main {
   }
 
   pazzlesColors = {
-    1:0x4FC3F7, 2:0x4FC3F7, 4:0x4FC3F7, 5:0x4FC3F7, 6:0x4FC3F7, 9:0x4FC3F7, 10:0x4FC3F7, 11:0x4FC3F7, 14:0x4FC3F7,
-    15:0xFFD54F, 16:0xFFD54F, 17:0xFFD54F, 19:0xFFD54F,
-    3:0xFF8A65 ,7:0xFF8A65 ,8:0xFF8A65 ,12:0xFF8A65 ,13:0xFF8A65 ,18:0xFF8A65
+    1: 0x4FC3F7, 2: 0x4FC3F7, 4: 0x4FC3F7, 5: 0x4FC3F7, 6: 0x4FC3F7, 9: 0x4FC3F7, 10: 0x4FC3F7, 11: 0x4FC3F7, 14: 0x4FC3F7,
+    15: 0xFFD54F, 16: 0xFFD54F, 17: 0xFFD54F, 19: 0xFFD54F,
+    3: 0xFF8A65, 7: 0xFF8A65, 8: 0xFF8A65, 12: 0xFF8A65, 13: 0xFF8A65, 18: 0xFF8A65
   }
 
   paintPazzles() {
@@ -142,14 +142,14 @@ class Main {
   }
   pazzleAction(name, pazzle) {
     pazzle.position.y -= 0.05
-    if(pazzle.position.y <= -1) {
+    if (pazzle.position.y <= -1) {
       pazzle.material.visible = false
       delete this.ACTIONS[name]
     }
   }
   initPazzles() {
     Object.values(this.pazzles).forEach(pazzle => {
-      const event = document.ontouchstart !== null ? 'click':'touchstart';
+      const event = document.ontouchstart !== null ? 'click' : 'touchstart';
       pazzle.on(event, () => {
         console.log(pazzle.position.y)
         this.ACTIONS[pazzle.name] = this.pazzleAction.bind(this, name, pazzle);
@@ -170,6 +170,24 @@ class Main {
 
     this.render();
     requestAnimationFrame(() => this.looper());
+  }
+
+
+  absPos(myMesh) {
+    myMesh.geometry.computeBoundingBox();
+
+    var boundingBox = myMesh.geometry.boundingBox;
+    console.log()
+    boundingBox.min.multiplyScalar(10) // initial scale of this fucking obj
+    boundingBox.max.multiplyScalar(10) // the same for max ...
+    var position = new THREE.Vector3();
+    position.subVectors(boundingBox.max, boundingBox.min);
+    position.multiplyScalar(0.5);
+    position.add(boundingBox.min);
+
+    position.applyMatrix4(myMesh.matrixWorld);
+
+    console.log(position)
   }
 }
 
