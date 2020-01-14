@@ -54,7 +54,7 @@ class Main {
     this.scene.add(new THREE.AmbientLight(0x404040));
     this.pointLightBottom = new THREE.DirectionalLight(0xffffff);
     this.pointLight = new THREE.DirectionalLight(0xffffff);
-    this.scene.fog = new THREE.FogExp2(0xbfe3dd, 0.004);
+    this.scene.fog = new THREE.FogExp2(0xbfe3dd, 0.002);
     this.pointLight.position.set(-50, 70, -50);
     this.pointLightBottom.position.set(15, -50, -80);
     this.scene.add(this.pointLight);
@@ -66,6 +66,10 @@ class Main {
     this.sun.position.copy(this.pointLight.position);
     this.scene.add(this.sun);
 
+    this.character = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshBasicMaterial({color: 0xff0000}))
+    this.character.position.y = 1
+    this.character.position.x = -20
+    this.scene.add(this.character)
     const plate$ = loadObj(mtl, obj);
     plate$.then(plateMesh => {
       plateMesh.scale.set(10, 10, 10);
@@ -147,11 +151,35 @@ class Main {
       delete this.ACTIONS[name]
     }
   }
+  cubeAction(position, initial) {
+    
+    if(position.x > initial.x && position.x > this.character.position.x) {
+      this.character.position.x += (position.x - initial.x)/20;
+    }
+    
+    if(position.z > initial.z && position.z > this.character.position.z) {
+      this.character.position.z += (position.z - initial.z)/20;
+    }
+
+    if(position.x < initial.x && position.x < this.character.position.x) {
+      this.character.position.x -= (initial.x - position.x)/20;
+    }
+    
+    if(position.z < initial.z && position.z < this.character.position.z) {
+      this.character.position.z -= (initial.z - position.z)/20;
+    }
+    
+    // if(position.x > this.character.position.x && position.y > this.character.position.y && position.z > this.character.position.z) {
+    //   delete this.ACTIONS['cube']
+    // }
+  }
   initPazzles() {
     Object.values(this.pazzles).forEach(pazzle => {
       const event = document.ontouchstart !== null ? 'click' : 'touchstart';
       pazzle.on(event, () => {
-        console.log(pazzle.position.y)
+        console.log(this.absPos(pazzle), this.character.position.clone())
+        delete this.ACTIONS['cube'];
+        this.ACTIONS['cube'] = this.cubeAction.bind(this, this.absPos(pazzle), this.character.position.clone())
         this.ACTIONS[pazzle.name] = this.pazzleAction.bind(this, name, pazzle);
       })
     })
@@ -173,13 +201,14 @@ class Main {
   }
 
 
+
   absPos(myMesh) {
     myMesh.geometry.computeBoundingBox();
 
     var boundingBox = myMesh.geometry.boundingBox;
     console.log()
-    boundingBox.min.multiplyScalar(10) // initial scale of this fucking obj
-    boundingBox.max.multiplyScalar(10) // the same for max ...
+    // boundingBox.min.multiplyScalar(10) // initial scale of this fucking obj
+    // boundingBox.max.multiplyScalar(10) // the same for max ...
     var position = new THREE.Vector3();
     position.subVectors(boundingBox.max, boundingBox.min);
     position.multiplyScalar(0.5);
@@ -187,7 +216,8 @@ class Main {
 
     position.applyMatrix4(myMesh.matrixWorld);
 
-    console.log(position)
+    return position
+    // console.log(position)
   }
 }
 
